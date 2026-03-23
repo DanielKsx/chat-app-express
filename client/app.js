@@ -5,6 +5,8 @@ const messagesList = document.getElementById("messages-list");
 const addMessageForm = document.getElementById("add-messages-form");
 const userNameInput = document.getElementById("username");
 const messageContentInput = document.getElementById("message-content");
+const socket = io();
+socket.on('message', ({ author, content }) => addMessage(author, content));
 
 let userName = "";
 
@@ -16,6 +18,7 @@ function login(event) {
         return;
     }
     userName = userNameValue;
+    socket.emit('userName', { name: userName });
     loginForm.classList.remove("show")
     messagesSection.classList.add("show")
 };
@@ -28,6 +31,7 @@ function sendMessage(event) {
         return;
     }
     addMessage(userName, userTextValue);
+    socket.emit('message', { author: userName, content: userTextValue });
     messageContentInput.value = "";
 };
 
@@ -41,13 +45,17 @@ function addMessage(author, content) {
     contentElement.classList.add("message__content");
 
     contentElement.textContent = content;
-
+    if (author === 'Chat Bot') {
+        contentElement.style.fontStyle = 'italic'
+    }
+    
     if (author === userName) {
         message.classList.add("message--self")
         authorElement.textContent = "You"
     } else {
         authorElement.textContent = author
     }
+
 
     message.appendChild(authorElement);
     message.appendChild(contentElement);
